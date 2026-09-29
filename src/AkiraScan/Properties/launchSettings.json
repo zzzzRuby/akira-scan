@@ -1,0 +1,14 @@
+{
+    "profiles": {
+      "AkiraScan": {
+        "commandName": "Project",
+        "launchBrowser": true,
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "ASPNETCORE_STATICWEBASSETS": "J:\\AllInOne\\build\\dotnet\\AkiraScan\\bin\\Debug\\net10.0-browser\\AkiraScan.staticwebassets.runtime.json"
+        },
+        "applicationUrl": "https://localhost:7169;http://localhost:5235",
+        "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}"
+      }
+    }
+}

@@ -1,0 +1,90 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.StaticWebAssets">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net10.0-android;net10.0-macos;net10.0-ios;net10.0-tvos;net10.0-maccatalyst</TargetFrameworks>
+
+    <HasTizenSdk Condition="Exists('$(NetCoreTargetingPackRoot)/Samsung.Tizen.Sdk')">true</HasTizenSdk>
+    <TargetFrameworks Condition="'$(HasTizenSdk)' == 'true'">$(TargetFrameworks);net10.0-tizen</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RootNamespace>AkiraScan</RootNamespace>
+    <OutputType>Library</OutputType>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>AkiraScan.Camera</PackageId>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'macos'">
+		<SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+		<SupportedOSPlatformVersion>14.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+		<SupportedOSPlatformVersion>14.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tvos'">
+		<SupportedOSPlatformVersion>17.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">
+		<SupportedOSPlatformVersion>6.5</SupportedOSPlatformVersion>
+  </PropertyGroup>
+ 
+  <ItemGroup>
+    <Content Remove="Camera/Platform/**" />
+    <Compile Remove="Camera/Platform/**" />
+    <None Include="Camera/Platform/**" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == ''">
+    <Compile Include="Camera/Platform/Windows/**/*.cs" />
+    <AdditionalFiles Include="Camera/Platform/Windows/NativeMethods.txt" />
+    <AdditionalFiles Include="Camera/Platform/Windows/NativeMethods.json" />
+    <Compile Include="Camera/Platform/Linux/**/*.cs" />
+    <Compile Include="Camera/Platform/Browser/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'macos'">
+    <Compile Include="Camera/Platform/Darwin/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'android'">
+    <Compile Include="Camera/Platform/Android/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'ios'">
+    <Compile Include="Camera/Platform/Darwin/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'maccatalyst'">
+    <Compile Include="Camera/Platform/Darwin/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'tvos'">
+    <Compile Include="Camera/Platform/Darwin/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'tizen'">
+    <Compile Include="Camera/Platform/Tizen/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="tizen" />
+    <PackageReference Include="Silk.NET.OpenGLES" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.OpenGLES.Extensions.OES" Version="2.23.0" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.321">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

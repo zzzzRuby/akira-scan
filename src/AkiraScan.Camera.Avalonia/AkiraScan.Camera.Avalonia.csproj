@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net10.0-android;net10.0-macos;net10.0-ios;net10.0-tvos;net10.0-maccatalyst</TargetFrameworks>
+
+    <HasTizenSdk Condition="Exists('$(NetCoreTargetingPackRoot)/Samsung.Tizen.Sdk')">true</HasTizenSdk>
+    <TargetFrameworks Condition="'$(HasTizenSdk)' == 'true'">$(TargetFrameworks);net10.0-tizen</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RootNamespace>AkiraScan</RootNamespace>
+    <OutputType>Library</OutputType>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>AkiraScan.Camera.Avalonia</PackageId>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <ProjectReference Include="../AkiraScan.Camera/AkiraScan.Camera.csproj" />
+  </ItemGroup>
+
+</Project>

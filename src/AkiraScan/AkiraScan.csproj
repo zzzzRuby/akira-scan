@@ -1,0 +1,160 @@
+﻿<Project>
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net10.0-android;net10.0-browser</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows;net10.0-macos;net10.0-ios</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('macos'))">$(TargetFrameworks);net10.0-macos;net10.0-ios</TargetFrameworks>
+  </PropertyGroup>
+  
+  <Import Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'browser'" Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'browser'" Project="Sdk.props" Sdk="Microsoft.NET.Sdk.WebAssembly" />
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <OutputType>Exe</OutputType>
+		<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <ApplicationManifest>Platform/Windows/app.manifest</ApplicationManifest>
+    <PublishAot Condition="'$(PublishAot)' == ''">true</PublishAot>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'macos'">
+    <OutputType>Exe</OutputType>
+		<SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
+    <CodesignEntitlements>Platform/macOS/Entitlements.plist</CodesignEntitlements>
+    <RuntimeIdentifiers Condition="'$(RuntimeIdentifiers)' == ''">osx-arm64</RuntimeIdentifiers>
+    <PublishAot Condition="'$(PublishAot)' == '' And $([MSBuild]::IsOSPlatform('macos'))">true</PublishAot>
+    <CreatePackage>false</CreatePackage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == ''">
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+    <OutputType>Exe</OutputType>
+		<SupportedOSPlatformVersion>14.0</SupportedOSPlatformVersion>
+    <CodesignKey Condition="'$(CodesignKey)' == ''">-</CodesignKey>
+    <CodesignEntitlements>Platform/iOS/Entitlements.plist</CodesignEntitlements>
+    <PublishAot Condition="'$(PublishAot)' == '' And $([MSBuild]::IsOSPlatform('macos'))">true</PublishAot>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <OutputType>Exe</OutputType>
+		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+    <ApplicationId>org.zzzzruby.AkiraScan</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+    <AndroidManifest>Platform/Android/AndroidManifest.xml</AndroidManifest>
+    <TrimMode>Link</TrimMode>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'browser'">
+    <OutputType>Exe</OutputType>
+    <WasmEnableThreads>true</WasmEnableThreads>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CoreModelFile>$(MSBuildProjectDirectory)/../../models/akira-scan.onnx</CoreModelFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+    <InterfaceDefinition Remove="Platform/**" />
+    <Content Remove="Platform/**" />
+    <Compile Remove="Platform/**" />
+    <Compile Include="Platform/*.cs" />
+    <None Include="Platform/**" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == ''">
+    <Compile Include="Platform/Desktop/**/*.cs" />
+    <Content Include="$(CoreModelFile)">
+      <Link>akira-scan.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'windows'">
+    <Compile Include="Platform/Desktop/**/*.cs" />
+    <Content Include="$(CoreModelFile)">
+      <Link>akira-scan.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'macos'">
+    <Compile Include="Platform/Desktop/**/*.cs" />
+    <ImageAsset Include="Platform/macOS/Assets.xcassets/**/*" />
+    <InterfaceDefinition Include="Platform/macOS/*.storyboard" />
+    <Content Include="$(CoreModelFile)">
+      <Link>Resources/akira-scan.onnx</Link>
+    </Content>
+    <None Include="Platform/macOS/Info.plist">
+      <LogicalName>Info.plist</LogicalName>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'android'">
+    <Compile Include="Platform/Android/**/*.cs" />
+    <AndroidAsset Include="$(CoreModelFile)">
+      <Link>akira-scan.onnx</Link>
+    </AndroidAsset>
+    <AndroidResource Include="Platform/Android/Resources/**" />
+    <AndroidResource Include="Platform/Android/Icon.png">
+      <Link>Resources/drawable/Icon.png</Link>
+    </AndroidResource>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'ios'">
+    <Compile Include="Platform/iOS/**/*.cs" />
+    <InterfaceDefinition Include="Platform/iOS/**/*.xib" />
+    <BundleResource Include="$(CoreModelFile)">
+      <Link>Resources/akira-scan.onnx</Link>
+    </BundleResource>
+    <None Include="Platform/iOS/Info.plist">
+      <LogicalName>Info.plist</LogicalName>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetPlatformIdentifier)' == 'browser'">
+    <Content Remove="Properties/**" />
+    <Compile Include="Platform/Browser/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <ProjectReference Include="../AkiraScan.Camera.Avalonia/AkiraScan.Camera.Avalonia.csproj" />
+    
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" Condition="'$(TargetPlatformIdentifier)' == ''" />
+    <PackageReference Include="Avalonia.Win32" Version="12.1.1" Condition="'$(TargetPlatformIdentifier)' == 'windows'" />
+    <PackageReference Include="Avalonia.Native" Version="12.1.1" Condition="'$(TargetPlatformIdentifier)' == 'macos'" />
+    <PackageReference Include="Avalonia.Skia" Version="12.1.1" Condition="'$(TargetPlatformIdentifier)' == 'windows' Or '$(TargetPlatformIdentifier)' == 'macos'" />
+    <PackageReference Include="Avalonia.Harfbuzz" Version="12.1.1" Condition="'$(TargetPlatformIdentifier)' == 'windows' Or '$(TargetPlatformIdentifier)' == 'macos'" />
+    <PackageReference Include="Avalonia.Android" Version="12.1.1" Condition="'$(TargetPlatformIdentifier)' == 'android'" />
+    <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.2" Condition="'$(TargetPlatformIdentifier)' == 'android'" />
+    <PackageReference Include="Avalonia.iOS" Version="12.1.1" Condition="'$(TargetPlatformIdentifier)' == 'ios'" />
+    <PackageReference Include="Avalonia.Browser" Version="12.1.1" Condition="'$(TargetPlatformIdentifier)' == 'browser'" />
+
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.28.0" Condition="'$(TargetPlatformIdentifier)' != '' And '$(TargetPlatformIdentifier)' != 'windows'" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.28.0" Condition="'$(TargetPlatformIdentifier)' == '' Or '$(TargetPlatformIdentifier)' == 'windows'" />
+    <PackageReference Include="RiichiSharp" Version="1.0.1" />
+    <PackageReference Include="Comentsys.Assets.Games" Version="2.0.0" />
+    
+    <!--<PackageReference Include="Microsoft.DotNet.ILCompiler.LLVM" Version="10.0.0-*" Condition="'$(TargetPlatformIdentifier)' == 'browser'" />
+    <PackageReference Include="runtime.$(NETCoreSdkPortableRuntimeIdentifier).Microsoft.DotNet.ILCompiler.LLVM" Version="10.0.0-*" Condition="'$(TargetPlatformIdentifier)' == 'browser'" />-->
+  </ItemGroup>
+
+  <Import Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'browser'" Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'browser'" Project="Sdk.targets" Sdk="Microsoft.NET.Sdk.WebAssembly" />
+</Project>

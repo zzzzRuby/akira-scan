@@ -1,0 +1,77 @@
+export default {
+    package: "akira-scan",
+    preload: function() {
+        require_extension("dotnet")
+        require_package("onnxruntime", "skiasharp", "harfbuzz")
+        if (is_darwin()) {
+            require_package("avalonia")
+        }
+        if (is_win()) {
+            require_package("angle")
+        }
+        require_static_native_aot()
+    },
+    config: function() {
+        if (!is_platform("windows", "linux", "macos")) {
+            return;
+        }
+        
+        const source = [
+            ...list_files("src/AkiraScan.Camera/Camera", { patterns: ["*.cs"] }),
+            ...list_files("src/AkiraScan.Camera/Camera/Cpu", { patterns: ["*.cs"] }),
+            ...list_files("src/AkiraScan.Camera/Camera/GL", { patterns: ["*.cs"] }),
+            ...list_files("src/AkiraScan.Camera/Camera/Utils", { patterns: ["*.cs"] }),
+            ...list_files("src/AkiraScan.Camera.Avalonia", { patterns: ["*.cs", "*.axaml"], recursive: true }),
+            ...list_files("src/AkiraScan", { patterns: ["*.cs", "*.axaml"] }),
+            ...list_files("src/AkiraScan/Assets", { recursive: true }),
+            ...list_files("src/AkiraScan/Core", { recursive: true, patterns: ["*.cs"] }),
+            ...list_files("src/AkiraScan/Platform", { patterns: ["*.cs"] }),
+            ...list_files("src/AkiraScan/ViewModels", { recursive: true, patterns: ["*.cs"] }),
+            ...list_files("src/AkiraScan/Views", { recursive: true, patterns: ["*.cs", "*.axaml"] }),
+        ]
+        const app = add_clr_executable("AkiraScan", "csharp", { source, win_exe: is_platform("windows"), all_platform: false })
+            .property("RootNamespace", "AkiraScan")
+            .property("ImplicitUsings", "disable")
+            .property("Nullable", "enable")
+            .property("IlcFoldIdenticalMethodBodies", "true")
+            .property("TrimMode", "Link")
+            .property("AvaloniaUseCompiledBindingsByDefault", "true")
+            .property("BuiltInComInteropSupport", "true")
+            .allow_unsafe()
+            .nuget_from_project_file("src/AkiraScan/AkiraScan.csproj")
+            .nuget_from_project_file("src/AkiraScan.Camera/AkiraScan.Camera.csproj");
+
+        const assets = list_files("src/AkiraScan/Assets", { recursive: true })
+        for (const x of assets) {
+            app.add_item("AvaloniaResource", x, { attributes: { Link: path_rel(x, current_source_dir("src", "AkiraScan")) } })
+        }
+        for (const x of source.filter(x => x.endsWith(".axaml"))) {
+            app.add_item("AvaloniaXaml", x, { attributes: { Link: path_rel(x, current_source_dir("src", "AkiraScan")) } })
+        }
+        app.add_item("SupportedPlatform", "tizen")
+        if (is_platform("windows", "linux", "emscripten")) {
+            app.add_source(list_files("src/AkiraScan.Camera/Camera/Platform/Browser", { patterns: ["*.cs"], recursive: true }))
+            app.add_source(list_files("src/AkiraScan.Camera/Camera/Platform/Linux", { patterns: ["*.cs"], recursive: true }))
+            app.add_source(list_files("src/AkiraScan.Camera/Camera/Platform/Windows", { patterns: ["*.cs"], recursive: true }))
+            app.add_source(list_files("src/AkiraScan/Platform/Desktop", { patterns: ["*.cs"], recursive: true }))
+            app.add_item("AdditionalFiles", current_source_dir("src/AkiraScan.Camera/Camera/Platform/Windows/NativeMethods.txt"))
+            app.add_item("AdditionalFiles", current_source_dir("src/AkiraScan.Camera/Camera/Platform/Windows/NativeMethods.json"))
+        }
+
+        app.aot()
+            .add_item("DirectPInvoke", ["libHarfBuzzSharp", "libSkiaSharp"])
+            .aot_target()
+            .link({ private: ["harfbuzz", "SkiaSharpNative"] })
+            .strip()
+        if (is_win()) {
+            app.add_item("DirectPInvoke", "av_libGLESv2")
+                .aot_target()
+                .link({ private: ["angle_libGLESv2"] })
+        }
+        if (is_platform("macos")) {
+            app.add_item("DirectPInvoke", "libAvaloniaNative")
+                .aot_target()
+                .link({ private: ["AvaloniaNativeStatic"] })
+        }
+    }
+} satisfies Package

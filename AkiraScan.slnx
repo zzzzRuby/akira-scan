@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/AkiraScan/AkiraScan.csproj" />
+  <Project Path="src/AkiraScan.Camera/AkiraScan.Camera.csproj" />
+  <Project Path="src/AkiraScan.Camera.Avalonia/AkiraScan.Camera.Avalonia.csproj" />
+</Solution>

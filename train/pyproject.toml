@@ -1,0 +1,22 @@
+[project]
+name = "akira-scan"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "onnx>=1.22.0",
+    "onnxscript>=0.7.1",
+    "onnxslim>=0.1.94",
+    "torch>=2.12.1",
+    "torchvision>=0.27.1",
+    "ultralytics>=8.4.75",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch" }
+torchvision = { index = "pytorch" }
+
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu130"
